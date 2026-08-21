@@ -1,7 +1,7 @@
 # services/tamper-detect/test_tamper_detect.py
 import numpy as np
 from tamper_detect import (
-    laplacian_variance, edge_density, histogram_entropy, TamperDetector,
+    laplacian_variance, edge_density, histogram_entropy #TamperDetector
 )
 
 def _textured(seed=0):
