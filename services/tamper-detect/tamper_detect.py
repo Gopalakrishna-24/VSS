@@ -72,3 +72,39 @@ class TamperDetector:
         self._below.append(1 if tripped >= self.min_signals else 0)
         # Flag only if the whole window is tampered (sustained, not a blip).
         return len(self._below) == self.window and all(self._below)
+def run_stream(source, window=8, baseline_frames=30, drop_ratio=0.4,
+               min_signals=2, downscale_width=320):
+    """Read frames from an RTSP URL or a file path; return first-tamper info.
+       downscale_width keeps it fast: we don't need full resolution to see a
+       collapse, and shrinking every frame makes it run comfortably in real time
+       on a CPU."""
+    cap = cv2.VideoCapture(source)
+    if not cap.isOpened():
+        raise RuntimeError(f"cannot open source: {source}")
+    fps = cap.get(cv2.CAP_PROP_FPS) or 25.0
+    det = TamperDetector(window, baseline_frames, drop_ratio, min_signals)
+    idx = 0
+    result = {"tampered_at_frame": None, "tampered_at_sec": None, "fps": fps}
+    while True:
+        ok, frame = cap.read()
+        if not ok:
+            break
+        if downscale_width and frame.shape[1] > downscale_width:
+            h = int(frame.shape[0] * downscale_width / frame.shape[1])
+            frame = cv2.resize(frame, (downscale_width, h))
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        if det.update(gray):
+            result["tampered_at_frame"] = idx
+            result["tampered_at_sec"] = round(idx / fps, 2)
+            break
+        idx += 1
+    cap.release()
+    return result
+
+
+if __name__ == "__main__":
+    import sys, json
+    if len(sys.argv) < 2:
+        print("usage: python tamper_detect.py <file.mp4 | rtsp://...>")
+        sys.exit(1)
+    print(json.dumps(run_stream(sys.argv[1]), indent=2))
