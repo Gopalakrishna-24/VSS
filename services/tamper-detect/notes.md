@@ -5,3 +5,15 @@
 
 - **Why do we require the histogram entropy of a textured image to be > 4 bits, not > 7?**
   Real-world scenes contain smooth gradients, shadows, and uniform areas that lower overall entropy. A threshold of > 4 bits filters out flat/blocked frames while letting genuine textured photos pass (whereas > 7 bits would wrongly reject valid real-world images).
+
+# day 2 report
+ 
+Test Video: footage-pov-spraypaint-sprayed-into-camera.mp4
+
+Status: Passed (Successfully detected tampering)
+
+Detected Timestamp: 5.37 seconds (Frame 161)
+
+Working Configuration: baseline_frames = 30 (Default parameters successfully established a clean baseline and flagged the occlusion within the expected 4-6 second midpoint window).
+
+Video Frame Rate: $30.00$ FPS
